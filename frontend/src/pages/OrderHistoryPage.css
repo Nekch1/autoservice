@@ -1,0 +1,26 @@
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.order-table th,
+.order-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.pagination {
+  margin-top: 16px;
+}
+
+.pagination button {
+  margin-right: 6px;
+  padding: 5px 10px;
+}
+
+.pagination .active {
+  background-color: #007bff;
+  color: white;
+}

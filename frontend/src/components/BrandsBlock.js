@@ -1,0 +1,78 @@
+import {React, useState, useEffect} from 'react';
+import Slider from 'react-slick';
+import BucherImg from '../assets/img/bucher.png';
+import CarFitImg from '../assets/img/car-fit.png';
+import BasfImg from '../assets/img/basf.png';
+import UPolImg from '../assets/img/u-pol.png';
+
+
+const BrandsBlock = () => {
+
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  useEffect(() => {
+    const imageUrls = [BucherImg, CarFitImg, BasfImg, UPolImg];
+    let loadedCount = 0;
+
+    imageUrls.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        loadedCount += 1;
+        if (loadedCount === imageUrls.length) {
+          setImagesLoaded(true);
+        }
+      };
+    });
+  }, []);
+  
+  const settings = {
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 2000,
+    arrows: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
+    responsive: [
+      { breakpoint: 1400, settings: { slidesToShow: 3 } },
+      { breakpoint: 992, settings: { slidesToShow: 2, arrows: false } },
+      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false, dots: true } },
+      { breakpoint: 576, settings: { slidesToShow: 1, arrows: false, dots: true } },
+    ],
+  };
+
+
+  if (!imagesLoaded) {
+    return <div>Загрузка брендов...</div>; 
+  }
+
+  return (
+    <section className="brands">
+      <div className="container">
+        <div className="title text-primary text-center">БРЕНДЫ</div>
+        <Slider {...settings} className="autoplay">
+          <div><img src={BucherImg} alt="bucher" /></div>
+          <div><img src={CarFitImg} alt="car-fit" /></div>
+          <div><img src={BasfImg} alt="basf" /></div>
+          <div><img src={UPolImg} alt="u-pol" /></div>
+          <div><img src={BucherImg} alt="bucher" /></div>
+          <div><img src={CarFitImg} alt="car-fit" /></div>
+          <div><img src={BasfImg} alt="basf" /></div>
+          <div><img src={UPolImg} alt="u-pol" /></div>
+        </Slider>
+      </div>
+    </section>
+  );
+};
+
+const PrevArrow = (props) => (
+  <svg className="prev-slick" onClick={props.onClick} style={{transform:"rotate(180deg)"}} width="50" height="50" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M45.2222 23.0001C45.2222 18.6049 43.9189 14.3085 41.477 10.6541C39.0352 6.99963 35.5646 4.15136 31.504 2.46941C27.4434 0.78746 22.9753 0.347386 18.6646 1.20484C14.3539 2.06229 10.3943 4.17875 7.28646 7.28658C4.17863 10.3944 2.06217 14.354 1.20472 18.6647C0.347267 22.9754 0.787342 27.4436 2.46929 31.5041C4.15124 35.5647 6.99952 39.0354 10.6539 41.4772C14.3084 43.919 18.6048 45.2223 22.9999 45.2223C28.8936 45.2223 34.546 42.881 38.7134 38.7135C42.8809 34.5461 45.2222 28.8938 45.2222 23.0001ZM23.5972 34.1112C23.2341 33.74 23.0308 33.2415 23.0308 32.7223C23.0308 32.2031 23.2341 31.7045 23.5972 31.3334L29.9444 24.9445L10.3055 24.9445C9.78981 24.9445 9.29523 24.7396 8.93057 24.375C8.56592 24.0103 8.36106 23.5158 8.36106 23.0001C8.36106 22.4844 8.56592 21.9898 8.93057 21.6251C9.29523 21.2605 9.78981 21.0556 10.3055 21.0556L29.7499 21.0556L23.5972 14.9028C23.2288 14.5345 23.0219 14.0349 23.0219 13.514C23.0219 12.993 23.2288 12.4934 23.5972 12.1251C23.9655 11.7567 24.4651 11.5498 24.9861 11.5498C25.507 11.5498 26.0066 11.7567 26.3749 12.1251L37.3055 23.1112L26.3472 34.1112C26.1666 34.2918 25.9522 34.435 25.7163 34.5327C25.4804 34.6305 25.2275 34.6808 24.9722 34.6808C24.7168 34.6808 24.4639 34.6305 24.228 34.5327C23.9921 34.435 23.7777 34.2918 23.5972 34.1112Z" fill="#0059C299"/></svg>
+);
+
+const NextArrow = (props) => (
+  <svg className="next-slick" onClick={props.onClick} width="50" height="50" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M45.2222 23.0001C45.2222 18.6049 43.9189 14.3085 41.477 10.6541C39.0352 6.99963 35.5646 4.15136 31.504 2.46941C27.4434 0.78746 22.9753 0.347386 18.6646 1.20484C14.3539 2.06229 10.3943 4.17875 7.28646 7.28658C4.17863 10.3944 2.06217 14.354 1.20472 18.6647C0.347267 22.9754 0.787342 27.4436 2.46929 31.5041C4.15124 35.5647 6.99952 39.0354 10.6539 41.4772C14.3084 43.919 18.6048 45.2223 22.9999 45.2223C28.8936 45.2223 34.546 42.881 38.7134 38.7135C42.8809 34.5461 45.2222 28.8938 45.2222 23.0001ZM23.5972 34.1112C23.2341 33.74 23.0308 33.2415 23.0308 32.7223C23.0308 32.2031 23.2341 31.7045 23.5972 31.3334L29.9444 24.9445L10.3055 24.9445C9.78981 24.9445 9.29523 24.7396 8.93057 24.375C8.56592 24.0103 8.36106 23.5158 8.36106 23.0001C8.36106 22.4844 8.56592 21.9898 8.93057 21.6251C9.29523 21.2605 9.78981 21.0556 10.3055 21.0556L29.7499 21.0556L23.5972 14.9028C23.2288 14.5345 23.0219 14.0349 23.0219 13.514C23.0219 12.993 23.2288 12.4934 23.5972 12.1251C23.9655 11.7567 24.4651 11.5498 24.9861 11.5498C25.507 11.5498 26.0066 11.7567 26.3749 12.1251L37.3055 23.1112L26.3472 34.1112C26.1666 34.2918 25.9522 34.435 25.7163 34.5327C25.4804 34.6305 25.2275 34.6808 24.9722 34.6808C24.7168 34.6808 24.4639 34.6305 24.228 34.5327C23.9921 34.435 23.7777 34.2918 23.5972 34.1112Z" fill="#0059C299"/></svg>
+  
+);
+
+export default BrandsBlock;

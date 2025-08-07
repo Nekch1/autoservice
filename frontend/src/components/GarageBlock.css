@@ -1,0 +1,99 @@
+/* Стили для блока гаража */
+.garage-block {
+    margin: 30px 0;
+  }
+  
+  .profile-block.garage {
+    /* padding: 20px; */
+    /* background-color: #fff; */
+    /* border-radius: 8px; */
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
+  }
+
+  
+  .add-auto {
+    color: #0059C2;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+  
+  .add-auto:hover {
+    text-decoration: underline;
+  }
+  
+  .empty {
+    color: #777;
+    text-align: center;
+    padding: 40px 0;
+    font-style: italic;
+  }
+  
+  /* Стили для модального окна */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .modal-overlay.show {
+    opacity: 1;
+  }
+  
+  .modal {
+    display: none;
+    z-index: 1050;
+  }
+  
+  .modal.show {
+    display: block;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 15px 20px;
+  }
+  
+  /* Стили для формы */
+  #carForm input {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 16px;
+  }
+  
+  #carForm input:focus {
+    outline: none;
+    border-color: #0059C2;
+    box-shadow: 0 0 0 3px rgba(0, 89, 194, 0.2);
+  }
+  
+
+  
+  /* Стили для пагинации */
