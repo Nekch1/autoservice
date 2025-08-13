@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../context/AuthContext';
+import carData from '../assets/file/cars.json'
 import axios from "axios";
 
 const GarageBlock = () => {
@@ -12,6 +13,19 @@ const GarageBlock = () => {
     
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+
+    ////
+    const [allCarData, setAllCarData] = useState([]);
+    const [availableMakes, setAvailableMakes] = useState([]);
+    const [availableModels, setAvailableModels] = useState([]);
+
+    useEffect(() => {
+        setAllCarData(carData);
+        setAvailableMakes(carData.map(make => make["name"]));
+    }, [])
+
+    ////
     
     const [carForm, setCarForm] = useState({
         mark: "",
@@ -19,6 +33,36 @@ const GarageBlock = () => {
         production_year: "",
         license_plate: ""
     });
+
+
+    ///////
+
+    const [minYear, setMinYear] = useState(1900);
+    const [maxYear, setMaxYear] = useState(new Date().getFullYear());
+
+    useEffect(() => {
+        const selectedMake = allCarData.find(make => make.name === carForm.mark);
+        const selectedModel = selectedMake?.models.find(model => model.name === carForm.model);
+
+        if (selectedModel) {
+            const currentYear = new Date().getFullYear();
+            const from = selectedModel["year-from"] || 1900;
+            const to = Math.min(selectedModel["year-to"] || currentYear, currentYear);
+
+            setMinYear(from);
+            setMaxYear(to);
+
+            // Если текущее значение вне допустимого диапазона — корректируем
+            if (carForm.production_year < from || carForm.production_year > to) {
+                setCarForm(prev => ({
+                    ...prev,
+                    production_year: to
+                }));
+            }
+        }
+    }, [carForm.mark, carForm.model]);
+
+    ///////
     
     const [editMode, setEditMode] = useState(false);
     const [editCarId, setEditCarId] = useState(null);
@@ -72,44 +116,72 @@ const GarageBlock = () => {
 
     const closeGarageMenu = () => {
         setShowGarageMenu(false);
-        setTimeout(() => setGarageOpen(false), 300);
+        // setCarForm(initialState);
+        setTimeout(() => setGarageOpen(false), 100);
+        setFormErrors({});
     };
 
     const handleFormChange = (e) => {
         const { id, value } = e.target;
         const fieldName = id.replace('car', '').toLowerCase();
-        
-        setCarForm(prev => ({
-            ...prev,
+
+        const newForm = {
+            ...carForm,
             [fieldName === 'make' ? 'mark' : fieldName]: value
-        }));
+        };
+
+        setCarForm(newForm);
+
+        if (fieldName === 'make') {
+            const selectedMake = carData.find(make => make.name === value);
+            const models = selectedMake ? selectedMake.models.map(model => model.name) : [];
+            setAvailableModels(models);
+            setCarForm(prev => ({ ...prev, model: "" }));
+        }
     };
 
+    const [formErrors, setFormErrors] = useState({});
+
+
+    const [licensePlateError, setLicensePlateError] = useState(false);
+    const fullLicensePattern = /^[А-ВЕКМНОРСТУХ]{1}\d{3}[А-ВЕКМНОРСТУХ]{2}\s\d{2,3}$/;
     const handleSubmit = async () => {
+        const errors = {};
+
+        if (!carForm.mark) errors.mark = "Выберите марку автомобиля";
+        if (!carForm.model) errors.model = "Выберите модель автомобиля";
+        if (!carForm.production_year) errors.production_year = "Выберите год выпуска";
+
+        const license = carForm.license_plate.trim();
+
+        // Гос. номер не обязателен, но если введён — должен быть валидным
+        if (license && !fullLicensePattern.test(license)) {
+            errors.license_plate = "Неверный формат. Пример: А123ВС 77";
+        }
+
+        setFormErrors(errors);
+
+        if (Object.keys(errors).length > 0) return;
+
         try {
-            if (!carForm.mark || !carForm.model || !carForm.production_year) {
-                alert('Пожалуйста, заполните обязательные поля: Марка, Модель и Год выпуска');
-                return;
-            }
-            
             const apiUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/cars`;
-            
+
             if (editMode) {
                 await axios.put(`${apiUrl}/${editCarId}`, {
                     mark: carForm.mark,
                     model: carForm.model,
                     production_year: parseInt(carForm.production_year),
-                    license_plate: carForm.license_plate
+                    license_plate: license || null
                 }, { withCredentials: true });
             } else {
                 await axios.post(apiUrl, {
                     mark: carForm.mark,
                     model: carForm.model,
                     production_year: parseInt(carForm.production_year),
-                    license_plate: carForm.license_plate
+                    license_plate: license || null
                 }, { withCredentials: true });
             }
-            
+
             fetchCars();
             closeGarageMenu();
         } catch (err) {
@@ -117,6 +189,8 @@ const GarageBlock = () => {
             alert('Произошла ошибка при сохранении автомобиля');
         }
     };
+
+
 
     const handleDelete = async (carId) => {
         if (window.confirm('Вы действительно хотите удалить этот автомобиль?')) {
@@ -145,6 +219,53 @@ const GarageBlock = () => {
         }
     };
 
+
+/////////////
+  const allowedLetters = ['А', 'В', 'Е', 'К', 'М', 'Н', 'О', 'Р', 'С', 'Т', 'У', 'Х'];
+
+const handleLicensePlateChange = (e) => {
+    let value = e.target.value.toUpperCase();
+
+    // Автоматически вставляем пробел после 6-го символа (если его нет)
+    if (value.length === 6 && !value.includes(' ')) {
+        value += ' ';
+    }
+
+    const format = [
+        /^[А-ЯA-Z]$/,         // 1: буква
+        /^\d$/,               // 2: цифра
+        /^\d$/,               // 3: цифра
+        /^\d$/,               // 4: цифра
+        /^[А-ЯA-Z]$/,         // 5: буква
+        /^[А-ЯA-Z]$/,         // 6: буква
+        /^\s$/,               // 7: пробел
+        /^\d$/,               // 8: цифра
+        /^\d$/,               // 9: цифра
+        /^\d?$/,              // 10 (опц.): цифра
+    ];
+
+    const chars = value.split("");
+
+    for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+
+        // Проверяем разрешённые буквы
+        if (format[i] && format[i].toString().includes('[А-ЯA-Z]')) {
+            if (!allowedLetters.includes(char)) return;
+        }
+
+        // Общая проверка по маске
+        if (!format[i] || !format[i].test(char)) return;
+    }
+
+    setCarForm(prev => ({
+        ...prev,
+        license_plate: value
+    }));
+};
+//////////
+
+
     return (
         <>
             {isGarageMenu && (
@@ -171,40 +292,56 @@ const GarageBlock = () => {
                                 <div className="modal-body">
                                     <form id="carForm">
                                         <div className="mb-4">
-                                            <input 
-                                                type="text" 
-                                                id="carMake" 
-                                                placeholder="Марка" 
-                                                value={carForm.mark}
-                                                onChange={handleFormChange}
-                                            />
+                                            <select id="carMake" value={carForm.mark} onChange={handleFormChange}>
+                                                <option value="">Выберите марку</option>
+                                                {availableMakes.map(make => (
+                                                    <option key={make} value={make}>{make}</option>
+                                                ))}
+                                            </select>
+                                            {formErrors.mark && <p className="text-danger mt-1">{formErrors.mark}</p>}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <select id="model" value={carForm.model} onChange={handleFormChange} disabled={!availableModels.length}>
+                                                <option value="">Выберите модель</option>
+                                                {availableModels.map(model => (
+                                                    <option key={model} value={model}>{model}</option>
+                                                ))}
+                                            </select>
+                                            {formErrors.model && <p className="text-danger mt-1">{formErrors.model}</p>}
                                         </div>
                                         <div className="mb-4">
-                                            <input 
-                                                type="text" 
-                                                id="model" 
-                                                placeholder="Модель" 
-                                                value={carForm.model}
-                                                onChange={handleFormChange}
-                                            />
-                                        </div>
-                                        <div className="mb-4">
-                                            <input 
-                                                type="number" 
-                                                id="production_year" 
-                                                placeholder="Год выпуска" 
+                                            <select
+                                                id="production_year"
                                                 value={carForm.production_year}
                                                 onChange={handleFormChange}
-                                            />
+                                                disabled={!carForm.model}
+                                            >
+                                                <option value="">Выберите год выпуска</option>
+                                                {Array.from({ length: maxYear - minYear + 1 }, (_, i) => {
+                                                    const year = maxYear - i;
+                                                    return <option key={year} value={year}>{year}</option>;
+                                                })}
+                                            </select>
+                                            {formErrors.production_year && <p className="text-danger mt-1">{formErrors.production_year}</p>}
                                         </div>
                                         <div className="mb-4">
-                                            <input 
-                                                type="text" 
-                                                id="license_plate" 
-                                                placeholder="Гос. номер" 
+                                            <input
+                                                type="text"
+                                                id="license_plate"
+                                                placeholder="Гос. номер"
                                                 value={carForm.license_plate}
-                                                onChange={handleFormChange}
+                                                onChange={handleLicensePlateChange}
+                                                style={{
+                                                    borderColor: formErrors.license_plate ? 'red' : '#ccc',
+                                                    borderWidth: '1px',
+                                                    padding: '6px',
+                                                    outline: 'none',
+                                                }}
                                             />
+                                            {formErrors.license_plate && (
+                                                <p className="text-danger mt-1">{formErrors.license_plate}</p>
+                                            )}
                                         </div>
                                     </form>
                                 </div>

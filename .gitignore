@@ -4,3 +4,4 @@ frontend/node_modules
 *.json
 backend/uploads
 *.config.js
+!cars.json

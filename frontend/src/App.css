@@ -353,7 +353,7 @@ nav{
 }
 
 .modal-body button:hover{
-  background-color: #0566D9 !important;
+  background-color: #0566D9 ;
   color:#fff !important
 }
 
@@ -2023,4 +2023,14 @@ section.catalog-item .title{
 
 .table-light th{
   background-color: #eeeeee;
+}
+
+.link-auth button:hover{
+  color: #0487d3;
+  /* font-weight: 500;s */
+  background-color: #fff !important;
+}
+
+.eye-button:hover{
+  /* background: #fff !important; */
 }
