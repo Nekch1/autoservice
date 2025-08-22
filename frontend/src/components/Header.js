@@ -151,12 +151,12 @@ const Header = () => {
                 </div>
                 <div className="burger-items">
                     <div className="burger-item burger-nav-item" onClick={toggleCatalog}>
-                    КАТАЛОГ
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" >
-                        <mask id="path-1-inside-1_2048_102" fill="white">
-                        <path d="M7.07129 4L3.53575 0.464461L0.000212009 4L3.53575 7.53554L7.07129 4Z"/>
-                        </mask>
-                        <path d="M3.53575 0.464461L2.12154 -0.949752L3.53575 -2.36397L4.94996 -0.949752L3.53575 0.464461ZM5.65708 5.41421L2.12154 1.87868L4.94996 -0.949752L8.4855 2.58579L5.65708 5.41421ZM4.94996 1.87868L1.41443 5.41421L-1.414 2.58579L2.12154 -0.949752L4.94996 1.87868Z" fill="#2F2F2F" mask="url(#path-1-inside-1_2048_102)"/>
+                        КАТАЛОГ
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" >
+                            <mask id="path-1-inside-1_2048_102" fill="white">
+                            <path d="M7.07129 4L3.53575 0.464461L0.000212009 4L3.53575 7.53554L7.07129 4Z"/>
+                            </mask>
+                            <path d="M3.53575 0.464461L2.12154 -0.949752L3.53575 -2.36397L4.94996 -0.949752L3.53575 0.464461ZM5.65708 5.41421L2.12154 1.87868L4.94996 -0.949752L8.4855 2.58579L5.65708 5.41421ZM4.94996 1.87868L1.41443 5.41421L-1.414 2.58579L2.12154 -0.949752L4.94996 1.87868Z" fill="#2F2F2F" mask="url(#path-1-inside-1_2048_102)"/>
                         </svg>
                     </div>
                     {isCatalogOpen && (
@@ -176,12 +176,57 @@ const Header = () => {
 
                     <div className="burger-item burger-nav-item"><Link to="/about"  onClick={closeBurgerMenu}>О КОМПАНИИ</Link></div>
                     <div className="burger-item burger-nav-item"><Link to="/contact"  onClick={closeBurgerMenu}>КОНТАКТЫ</Link></div>
+                    {user && (
+                        <>
+                            {user.role === 'client' && (
+                                <div className='burger-item burger-nav-item'>
+                                    <Link to='profile' onClick={closeBurgerMenu}>ПРОФИЛЬ</Link>
+                                </div>
+                            )}
+                            {user.role === 'admin' && (
+                                <div className='burger-item burger-nav-item'>
+                                    <Link to='admin-dashboard' onClick={closeBurgerMenu}>АДМИН-ПАНЕЛЬ</Link>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+
                     <div className="burger-item">Пн-Сб с 9:00 до 18:00 &nbsp; Вс с 9:00 до 14:00</div>
                     <div className="burger-item"><img src={locationIcon} alt="" /> &nbsp; г.Владимир, ул.Кулибина, 13а</div>
                     <div className="burger-item"><img src={locationIcon} alt="" /> &nbsp; г.Владимир, ул.Куйбышева, 22д</div>
                     <div className="burger-item"><img src={phoneIcon} alt="" /> 8-905-612-25-18</div>
                     <div className="burger-item"><img src={whatsappIcon} alt="" /> 8(4922)-600-217</div>
+
+                    <div className='auth-mobile'>
+                        {user ? (
+                        <div className="burger-item ">
+                        <div
+                            onClick={() => {
+                            closeBurgerMenu();
+                            logout();
+                            }}
+                            className="logout-btn"
+                        >
+                            ВЫЙТИ
+                        </div>
+                        </div>
+                    ) : (
+                        <div className="burger-item">
+                        <div
+                            onClick={() => {
+                            closeBurgerMenu();
+                            setIsAuthModalOpen(true);
+                            }}
+                            className="auth-btn"
+                        >
+                            ВОЙТИ
+                        </div>
+                        </div>
+                    )}
+                    </div>
                 </div>
+
                 </div>
             </div>
             )}

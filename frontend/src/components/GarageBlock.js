@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from '../context/AuthContext';
 import carData from '../assets/file/cars.json'
 import axios from "axios";
+import closeIcon from '../assets/img/close-menu.svg';
 
 const GarageBlock = () => {
     const { user } = useContext(AuthContext);
@@ -36,6 +37,10 @@ const GarageBlock = () => {
 
 
     ///////
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedCarId, setSelectedCarId] = useState(null);
+    ///////
+
 
     const [minYear, setMinYear] = useState(1900);
     const [maxYear, setMaxYear] = useState(new Date().getFullYear());
@@ -226,8 +231,12 @@ const GarageBlock = () => {
 const handleLicensePlateChange = (e) => {
     let value = e.target.value.toUpperCase();
 
-    // Автоматически вставляем пробел после 6-го символа (если его нет)
-    if (value.length === 6 && !value.includes(' ')) {
+    // Если пользователь набирает символ, а не стирает
+    if (
+        value.length === 6 &&                // ровно 6 символов
+        !value.includes(' ') &&              // пробела ещё нет
+        e.nativeEvent.inputType !== "deleteContentBackward" // не Backspace
+    ) {
         value += ' ';
     }
 
@@ -254,7 +263,6 @@ const handleLicensePlateChange = (e) => {
             if (!allowedLetters.includes(char)) return;
         }
 
-        // Общая проверка по маске
         if (!format[i] || !format[i].test(char)) return;
     }
 
@@ -265,6 +273,34 @@ const handleLicensePlateChange = (e) => {
 };
 //////////
 
+
+
+
+
+/////
+
+
+
+const handleDeleteClick = (carId) => {
+  setSelectedCarId(carId);
+  setShowDeleteModal(true);
+};
+
+const confirmDelete = async () => {
+  try {
+    await axios.delete(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/cars/${selectedCarId}`, {
+      withCredentials: true
+    });
+    fetchCars();
+    setShowDeleteModal(false);
+    setSelectedCarId(null);
+  } catch (err) {
+    console.error('Ошибка удаления автомобиля:', err);
+    alert('Произошла ошибка при удалении автомобиля');
+  }
+};
+
+/////
 
     return (
         <>
@@ -292,7 +328,7 @@ const handleLicensePlateChange = (e) => {
                                 <div className="modal-body">
                                     <form id="carForm">
                                         <div className="mb-4">
-                                            <select id="carMake" value={carForm.mark} onChange={handleFormChange}>
+                                            <select className="car-select" id="carMake" value={carForm.mark} onChange={handleFormChange}>
                                                 <option value="">Выберите марку</option>
                                                 {availableMakes.map(make => (
                                                     <option key={make} value={make}>{make}</option>
@@ -302,7 +338,7 @@ const handleLicensePlateChange = (e) => {
                                         </div>
 
                                         <div className="mb-4">
-                                            <select id="model" value={carForm.model} onChange={handleFormChange} disabled={!availableModels.length}>
+                                            <select  className="car-select" id="model" value={carForm.model} onChange={handleFormChange} disabled={!availableModels.length}>
                                                 <option value="">Выберите модель</option>
                                                 {availableModels.map(model => (
                                                     <option key={model} value={model}>{model}</option>
@@ -312,6 +348,7 @@ const handleLicensePlateChange = (e) => {
                                         </div>
                                         <div className="mb-4">
                                             <select
+                                                className="car-select"  
                                                 id="production_year"
                                                 value={carForm.production_year}
                                                 onChange={handleFormChange}
@@ -386,7 +423,7 @@ const handleLicensePlateChange = (e) => {
                                     {cars.map(car => (
                                         <div key={car.id} className="car-item mb-3 p-3 ">
                                             <div className="row">
-                                                <div className="col-md-8">
+                                                <div className="col-8">
                                                     <h3>{car.mark} {car.model}</h3>
                                                     <p><strong>Год выпуска:</strong> {car.production_year}</p>
                                                     {car.license_plate && <p><strong>Гос. номер:</strong> {car.license_plate}</p>}
@@ -397,11 +434,11 @@ const handleLicensePlateChange = (e) => {
                                                         Редактировать
                                                     </button>
                                                 </div>
-                                                <div className="col-md-4 d-flex justify-content-end align-items-center car-edit-block">
+                                                <div className="col-4 edit-block">
 
                                                     <button 
                                                         className="btn btn-delete"
-                                                        onClick={() => handleDelete(car.id)}
+                                                        onClick={() => handleDeleteClick(car.id)}
                                                     >
                                                         Удалить
                                                     </button>
@@ -418,17 +455,17 @@ const handleLicensePlateChange = (e) => {
                                             onClick={handlePrevPage}
                                             disabled={currentPage === 1}
                                         >
-                                            Предыдущая
+                                            Назад
                                         </button>
                                         <span className="d-flex align-items-center mx-2">
-                                            {currentPage} из {totalPages}
+                                            {currentPage} / {totalPages}
                                         </span>
                                         <button 
                                             className="btn ms-2 bg-primary text-white" 
                                             onClick={handleNextPage}
                                             disabled={currentPage === totalPages}
                                         >
-                                            Следующая
+                                            Вперёд
                                         </button>
                                     </div>
                                 )}
@@ -437,6 +474,26 @@ const handleLicensePlateChange = (e) => {
                     </div>
                 </div>
             </section>
+
+            {showDeleteModal && (
+                <div className="modal fade show confirm" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                        <h5 className="modal-title">Вы действительно хотите удалить этот автомобиль?</h5>
+                        
+                        <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}>
+                            <img src={closeIcon} alt="Закрыть" />
+                        </button>
+                        </div>
+                        <div className="modal-footer">
+                        <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Отмена</button>
+                        <button className="btn btn-delete" onClick={confirmDelete}>Удалить</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                )}
         </>
     );
 };

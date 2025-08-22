@@ -165,6 +165,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                     style={{ paddingRight: '40px' }}
                   />
                   <button className='eye-button'
+                    type='button'
                     onClick={togglePassword}
                     aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
                     aria-pressed={showPassword}

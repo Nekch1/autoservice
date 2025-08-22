@@ -35,14 +35,14 @@ const ProfileService = () => {
                         <div className="profile-info-container">
                             <div className="profile-details">
                                 <div className="profile-name">{user.name} {user.surname}</div>
-                                <div className="row">
-                                    <div className="personal-data col-md-2">
-                                        <div className="personal-data-name">Телефон: </div>
-                                        <div className="personal-data-name">Почта: </div>
+                                <div>
+                                    <div className="personal-data row">
+                                        <div className="personal-data-name col-md-2">Телефон: </div>
+                                        <div className="personal-data-value col-md-2">{user.phone}</div>
                                     </div>
-                                    <div className="personal-data col-md-2">
-                                        <div className="personal-data-value">{user.phone}</div>
-                                        <div className="personal-data-value">{user.email}</div>
+                                    <div className="personal-data row">
+                                        <div className="personal-data-name  col-md-2">Почта:</div>
+                                        <div className="personal-data-value  col-md-2">{user.email}</div>
                                     </div>
                                 </div>
                             </div>

@@ -9,9 +9,7 @@ const Car = require('../models/Car')
 const Service = require('../models/Service')
 const auth = require('../middleware/auth');
 
-// Защищаем все маршруты с помощью middleware авторизации
 router.use(auth);
-// 🔹 Получить все заказы (с пагинацией и фильтром по userId)
 router.get('/', async (req, res) => {
   try {
     const { userId, page = 1, limit = 10 } = req.query;
@@ -109,8 +107,8 @@ router.post('/', async (req, res) => {
     const message = {
       from: "nstrukov876@gmail.com",
       to: email,
-      subject: 'Подтверждение записи в автосервис',
-      text: `Вы успешно записались на следующие услуги: ${serviceNames}.\nДата: ${order_date}\nВремя: ${order_time}\nНомер заказа: ${order.id}`,
+      subject: 'Запись в автосервис',
+      text: `Вы успешно записались на следующие услуги: ${serviceNames}.\nДата: ${order_date}\nВремя: ${order_time}\nПожалуйста, ожидайте подтверждения.`,
     };
 
     await transporter.sendMail(message);
@@ -123,14 +121,42 @@ router.post('/', async (req, res) => {
 });
 
 // 🔹 Обновить заказ
+// 🔹 Обновить заказ и отправить email при смене статуса
 router.put('/:id', async (req, res) => {
   try {
-    const [updated] = await Order.update(req.body, {
-      where: { id: req.params.id },
+    const order = await Order.findByPk(req.params.id, {
+      include: [{ model: Service, as: 'Service' }]
     });
 
-    if (!updated) {
-      return res.status(404).json({ message: 'Заказ не найден для обновления' });
+    if (!order) {
+      return res.status(404).json({ message: 'Заказ не найден' });
+    }
+
+    const oldStatus = order.status;
+    await order.update(req.body);
+
+    // Если статус изменился → отправляем письмо
+    if (req.body.status && req.body.status !== oldStatus) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: "nstrukov876@gmail.com",
+          pass: "niof cvck wsos dfqk"
+        },
+      });
+
+      const serviceNames = order.Service.map(s => s.name).join(', ');
+
+      const message = {
+        from: "nstrukov876@gmail.com",
+        to: order.email,
+        subject: 'Обновление статуса заказа',
+        text: `Статус вашего заказа №${order.id} был изменён.\n\n` +
+              `Услуги: ${serviceNames}\nДата: ${order.order_date}\nВремя: ${order.order_time}\n` +
+              `Новый статус: ${req.body.status}`,
+      };
+
+      await transporter.sendMail(message);
     }
 
     res.json({ success: true });
@@ -139,6 +165,7 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ message: 'Ошибка обновления заказа' });
   }
 });
+
 
 // 🔹 Удалить заказ
 router.delete('/:id', async (req, res) => {
@@ -155,5 +182,32 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Ошибка удаления заказа' });
   }
 });
+
+
+// 🔹 Отмена заказа
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Заказ не найден' });
+    }
+
+    // Если заказ уже завершён – отменять нельзя
+    if (order.status === 'завершён') {
+      return res.status(400).json({ message: 'Нельзя отменить завершённый заказ' });
+    }
+
+    // Меняем статус на "отменён"
+    order.status = 'отменён';
+    await order.save();
+
+    res.json({ success: true, message: 'Запись успешно отменена' });
+  } catch (err) {
+    console.error('Ошибка отмены заказа:', err);
+    res.status(500).json({ message: 'Ошибка отмены заказа' });
+  }
+});
+
 
 module.exports = router;
