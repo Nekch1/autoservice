@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import carData from '../assets/file/cars.json'
 import axios from "axios";
 import closeIcon from '../assets/img/close-menu.svg';
+import Select from "react-select";
 
 const GarageBlock = () => {
     const { user } = useContext(AuthContext);
@@ -16,6 +17,9 @@ const GarageBlock = () => {
     const [totalPages, setTotalPages] = useState(1);
 
 
+
+
+
     ////
     const [allCarData, setAllCarData] = useState([]);
     const [availableMakes, setAvailableMakes] = useState([]);
@@ -27,6 +31,13 @@ const GarageBlock = () => {
     }, [])
 
     ////
+
+
+    
+    const [searchMake, setSearchMake] = useState("");
+    const filteredMakes = availableMakes.filter(make =>
+        make.toLowerCase().includes(searchMake.toLowerCase())
+    );
     
     const [carForm, setCarForm] = useState({
         mark: "",
@@ -328,38 +339,53 @@ const confirmDelete = async () => {
                                 <div className="modal-body">
                                     <form id="carForm">
                                         <div className="mb-4">
-                                            <select className="car-select" id="carMake" value={carForm.mark} onChange={handleFormChange}>
-                                                <option value="">Выберите марку</option>
-                                                {availableMakes.map(make => (
-                                                    <option key={make} value={make}>{make}</option>
-                                                ))}
-                                            </select>
+                                            <Select
+                                                className="car-select"
+                                                id="carMake"
+                                                placeholder="Выберите марку"
+                                                value={carForm.mark ? { value: carForm.mark, label: carForm.mark } : null}
+                                                onChange={(selected) => {
+                                                    handleFormChange({ target: { id: "carMake", value: selected?.value || "" } });
+                                                }}
+                                                options={availableMakes.map(make => ({ value: make, label: make }))}
+                                                isClearable
+                                            />
                                             {formErrors.mark && <p className="text-danger mt-1">{formErrors.mark}</p>}
                                         </div>
 
                                         <div className="mb-4">
-                                            <select  className="car-select" id="model" value={carForm.model} onChange={handleFormChange} disabled={!availableModels.length}>
-                                                <option value="">Выберите модель</option>
-                                                {availableModels.map(model => (
-                                                    <option key={model} value={model}>{model}</option>
-                                                ))}
-                                            </select>
+                                            <Select
+                                                className="car-select"
+                                                id="model"
+                                                placeholder="Выберите модель"
+                                                value={carForm.model ? { value: carForm.model, label: carForm.model } : null}
+                                                onChange={(selected) => {
+                                                    handleFormChange({ target: { id: "model", value: selected?.value || "" } });
+                                                }}
+                                                options={availableModels.map(model => ({ value: model, label: model }))}
+                                                isClearable
+                                                isDisabled={!availableModels.length}
+                                            />
                                             {formErrors.model && <p className="text-danger mt-1">{formErrors.model}</p>}
                                         </div>
+
+                                        {/* год выпуска */}
                                         <div className="mb-4">
-                                            <select
-                                                className="car-select"  
+                                            <Select
+                                                className="car-select"
                                                 id="production_year"
-                                                value={carForm.production_year}
-                                                onChange={handleFormChange}
-                                                disabled={!carForm.model}
-                                            >
-                                                <option value="">Выберите год выпуска</option>
-                                                {Array.from({ length: maxYear - minYear + 1 }, (_, i) => {
+                                                placeholder="Выберите год выпуска"
+                                                value={carForm.production_year ? { value: carForm.production_year, label: carForm.production_year } : null}
+                                                onChange={(selected) => {
+                                                    handleFormChange({ target: { id: "production_year", value: selected?.value || "" } });
+                                                }}
+                                                options={Array.from({ length: maxYear - minYear + 1 }, (_, i) => {
                                                     const year = maxYear - i;
-                                                    return <option key={year} value={year}>{year}</option>;
+                                                    return { value: year, label: year };
                                                 })}
-                                            </select>
+                                                isClearable
+                                                isDisabled={!carForm.model}
+                                            />
                                             {formErrors.production_year && <p className="text-danger mt-1">{formErrors.production_year}</p>}
                                         </div>
                                         <div className="mb-4">
