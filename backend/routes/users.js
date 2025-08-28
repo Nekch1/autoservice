@@ -130,4 +130,15 @@ router.put('/:id/block', async (req, res) => {
   }
 });
 
+router.put('/:id/unblock', async (req, res) => {
+  try {
+    await User.update({ isBlocked: false }, { where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Ошибка разблокировки:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
 module.exports = router;
+
